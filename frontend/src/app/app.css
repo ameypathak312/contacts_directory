@@ -1,0 +1,46 @@
+/* Container adjustments */
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Ensure smooth scrolling and touch behaviors on mobile screens */
+html, body {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Modal backdrop animation styling */
+.fixed {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Utility layout helper for micro-spacing on extra small devices */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Make interactive elements easier to tap on mobile touchscreens */
+  button, input, textarea {
+    min-height: 44px;
+  }
+}
+
+/* Truncate long strings elegantly in the desktop view table cells */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,244 @@
+<div class="container mx-auto p-4 font-sans max-w-6xl">
+  
+  <header class="flex justify-between items-center bg-blue-700 text-white p-4 rounded-lg shadow-md mb-6">
+    <h1 class="text-xl md:text-2xl font-bold">संपर्क निर्देशिका / Contact Directory</h1>
+    @if (!contactService.isAdmin()) {
+      <button (click)="showLoginModal.set(true)" class="bg-white text-blue-700 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition">Admin Login</button>
+    } @else {
+      <button (click)="contactService.logout()" class="bg-red-500 text-white px-4 py-2 rounded font-semibold hover:bg-red-600 transition">Logout</button>
+    }
+  </header>
+
+  @if (showLoginModal()) {
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center p-4 z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 class="text-lg font-bold mb-4">Admin Login</h3>
+        <input type="text" [(ngModel)]="loginData.username" placeholder="Username" class="w-full border p-2 mb-3 rounded">
+        <input type="password" [(ngModel)]="loginData.password" placeholder="Password" class="w-full border p-2 mb-4 rounded">
+        <div class="flex justify-end gap-2">
+          <button (click)="showLoginModal.set(false)" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+          <button (click)="onLogin()" class="bg-blue-600 text-white px-4 py-2 rounded">Sign In</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (contactService.isAdmin()) {
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <div class="md:col-span-1">
+        <h2 class="text-lg font-semibold mb-3">
+          {{ isEditing() ? 'Edit Contact / संपर्क संपादित करा' : 'Add Contact / नवीन संपर्क जोडा' }}
+        </h2>
+        <form (ngSubmit)="onSaveContact()" class="space-y-2">         
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Department / विभाग *</label>
+            <select [(ngModel)]="contactForm().department_name" name="formDept" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500">
+              <option value="" disabled selected>-- Select Department --</option>
+              @for (dept of departmentsList(); track dept) {
+                <option [value]="dept">{{ dept }}</option>
+              }
+            </select>
+          </div>  
+          <input type="text" [(ngModel)]="contactForm().designation" name="designation" placeholder="Designation / हुद्दा" class="w-full border p-2 rounded">          
+          <input type="text" [(ngModel)]="contactForm().address" name="address" placeholder="Address / पत्ता" class="w-full border p-2 rounded">
+          <input type="text" [(ngModel)]="contactForm().name" name="name" placeholder="Name / नाव" class="w-full border p-2 rounded" required>
+          <input type="text" [(ngModel)]="contactForm().mobile_number" name="mobile" placeholder="Mobile / मोबाईल" class="w-full border p-2 rounded" required>
+          <input type="text" [(ngModel)]="contactForm().telephone_number" name="tele" placeholder="Telephone / दूरध्वनी" class="w-full border p-2 rounded">     
+          <input type="email" [(ngModel)]="contactForm().email" name="email" placeholder="Email / ईमेल" class="w-full border p-2 rounded">
+          <input type="text" [(ngModel)]="contactForm().other_contact_1" name="o1" placeholder="Other Contact 1 / इतर संपर्क १" class="w-full border p-2 rounded">
+          <input type="text" [(ngModel)]="contactForm().other_contact_2" name="o2" placeholder="Other Contact 2 / इतर संपर्क २" class="w-full border p-2 rounded">
+          <input type="text" [(ngModel)]="contactForm().other_contact_3" name="o3" placeholder="Other Contact 3 / इतर संपर्क ३" class="w-full border p-2 rounded">
+          <input type="text" [(ngModel)]="contactForm().other_contact_4" name="o4" placeholder="Other Contact 4 / इतर संपर्क ४" class="w-full border p-2 rounded">
+              
+          <div class="flex gap-2">
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">
+              {{ isEditing() ? 'Update' : 'Save' }}
+            </button>
+            @if (isEditing()) {
+              <button type="button" (click)="resetForm()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+            }
+          </div>
+        </form>
+      </div>
+
+      <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
+        <h2 class="text-lg font-semibold mb-2">Create Department / नवीन विभाग जोडा</h2>
+        <p class="text-xs text-gray-500 mb-3">Add structured department configurations to the lookup directory.</p>
+        <input type="text" [ngModel]="newDepartmentName()" (ngModelChange)="newDepartmentName.set($event)" placeholder="New Department Name" class="w-full border p-2 mb-3 rounded">
+        <button (click)="onAddDepartment()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">Create Department</button>
+      </div>
+
+      <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
+        <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
+        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Address, Name, Mobile Number, Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
+        
+        <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        
+        <button (click)="onUploadFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Upload File</button>
+      </div>
+    </div>
+  }
+
+  <div class="flex flex-col md:flex-row gap-4 mb-6">
+    <div class="flex-1">
+      <input type="text" [(ngModel)]="searchTerm" [ngModelOptions]="{standalone: true}" placeholder="Search by name, designation, or number / शोधा..." class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    
+    <div class="w-full md:w-64">
+      <select [(ngModel)]="selectedDepartment" class="w-full p-3 border rounded-lg shadow-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Select Departments/विभाग निवडा. </option>
+        @for (dept of departmentsList(); track dept) {
+          <option [value]="dept">{{ dept }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="w-full md:w-auto flex flex-wrap gap-2 items-center">
+      <button (click)="exportData('excel')" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-3 rounded-lg shadow-sm flex items-center gap-2 transition active:scale-95 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+        Export Excel
+      </button>
+
+      <button (click)="exportData('csv')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 rounded-lg shadow-sm flex items-center gap-2 transition active:scale-95 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <div class="hidden md:block overflow-x-auto bg-white rounded-lg shadow border border-gray-100 p-4">
+    <table class="w-full table-auto border-collapse text-left">
+      <thead>
+        <tr class="bg-gray-100 text-gray-700 uppercase text-xs border-b">
+          <th class="p-3">Department</th>
+          <th class="p-3">Designation</th>
+          <th class="p-3">Address</th>
+          <th class="p-3">Name</th>
+          <th class="p-3">Mobile Number</th>
+          <th class="p-3">Telephone Number</th>
+          <th class="p-3">Email</th>
+          <th class="p-3">Other Contact 1</th>
+          <th class="p-3">Other Contact 2</th>
+          <th class="p-3">Other Contact 3</th>
+          <th class="p-3">Other Contact 4</th>
+          @if (contactService.isAdmin()) { <th class="p-3 text-right">Actions</th> }
+        </tr>
+      </thead>
+      <tbody class="text-gray-600 text-sm">
+        @for (contact of filteredContacts(); track contact.id) {
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3">{{ contact.department_name || '-' }}</td>
+            <td class="p-3">{{ contact.designation || '-' }}</td>
+            <td class="p-3 max-w-xs truncate" title="{{ contact.address }}">{{ contact.address || '-' }}</td>
+            <td class="p-3 font-semibold text-gray-900">{{ contact.name }}</td>
+            <td class="p-3 whitespace-nowrap">{{ contact.mobile_number }}</td>
+            <td class="p-3">{{ contact.telephone_number || '-' }}</td>
+            <td class="p-3">{{ contact.email || '-' }}</td>
+            <td class="p-3">{{ contact.other_contact_1 || '-' }}</td>
+            <td class="p-3">{{ contact.other_contact_2 || '-' }}</td>
+            <td class="p-3">{{ contact.other_contact_3 || '-' }}</td>
+            <td class="p-3">{{ contact.other_contact_4 || '-' }}</td>
+            @if (contactService.isAdmin()) {
+              <td class="p-3 text-right space-x-2 whitespace-nowrap">
+                <button (click)="onEditContact(contact)" class="text-blue-600 hover:underline">Edit</button>
+                <button (click)="onDeleteContact(contact.id)" class="text-red-600 hover:underline">Delete</button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block md:hidden space-y-4">
+    @for (contact of filteredContacts(); track contact.id) {
+      <div class="bg-white p-4 rounded-lg shadow border border-gray-200 space-y-2">
+        <div class="text-lg font-bold text-gray-900 border-b pb-1">{{ contact.name }}</div>
+        
+        @if (contact.designation || contact.department_name) {
+          <div class="text-sm text-gray-500 italic">
+            {{ contact.designation }} {{ contact.designation && contact.department_name ? '•' : '' }} {{ contact.department_name }}
+          </div>
+        }
+
+        @if (contact.address) {
+          <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded border border-dashed">
+            <strong>Address:</strong> {{ contact.address }}
+          </div>
+        }
+
+        <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
+          <span class="text-sm"><strong>Mob:</strong> {{ contact.mobile_number }}</span>
+          <button (click)="copyToClipboard(contact.mobile_number)" class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded font-semibold active:scale-95 transition">Copy</button>
+        </div>
+
+        @if (contact.telephone_number) {
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
+            <span class="text-sm"><strong>Tel:</strong> {{ contact.telephone_number }}</span>
+            <button (click)="copyToClipboard(contact.telephone_number)" class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded font-semibold active:scale-95 transition">Copy</button>
+          </div>
+        }
+        @if (contact.email && contact.email !== '-') {
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
+            <span class="text-sm"><strong>Email:</strong> {{ contact.email }}</span>
+            <button type="button" (click)="copyToClipboard(contact.email)" class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded font-semibold active:scale-95 transition">Copy</button>
+          </div>
+        }
+        @if (contact.other_contact_1 || contact.other_contact_2 || contact.other_contact_3 || contact.other_contact_4) {
+          <div class="bg-gray-50 p-2 rounded border border-gray-100 text-xs space-y-2 text-gray-700">
+            <strong class="block border-b pb-1 mb-1 text-gray-500">Other Contacts / इतर संपर्क:</strong>
+            <div class="grid grid-cols-1 gap-2">
+              
+              @if (contact.other_contact_1 && contact.other_contact_1 !== '-') {
+                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
+                  <span><strong>①:</strong> {{ contact.other_contact_1 }}</span>
+                  <button type="button" (click)="copyToClipboard(contact.other_contact_1)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
+                </div>
+              }
+              
+              @if (contact.other_contact_2 && contact.other_contact_2 !== '-') {
+                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
+                  <span><strong>②:</strong> {{ contact.other_contact_2 }}</span>
+                  <button type="button" (click)="copyToClipboard(contact.other_contact_2)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
+                </div>
+              }
+              
+              @if (contact.other_contact_3 && contact.other_contact_3 !== '-') {
+                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
+                  <span><strong>③:</strong> {{ contact.other_contact_3 }}</span>
+                  <button type="button" (click)="copyToClipboard(contact.other_contact_3)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
+                </div>
+              }
+              
+              @if (contact.other_contact_4 && contact.other_contact_4 !== '-') {
+                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
+                  <span><strong>④:</strong> {{ contact.other_contact_4 }}</span>
+                  <button type="button" (click)="copyToClipboard(contact.other_contact_4)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
+                </div>
+              }
+
+            </div>
+          </div>
+        }
+        
+        @if (contactService.isAdmin()) {
+          <div class="flex justify-end gap-3 pt-2 border-t border-gray-100 mt-2">
+            <button (click)="onEditContact(contact)" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded shadow">Edit</button>
+            <button (click)="onDeleteContact(contact.id)" class="text-xs bg-red-600 text-white px-3 py-1.5 rounded shadow">Delete</button>
+          </div>
+        }
+      </div>
+    }@empty {
+  <div class="text-center p-8 text-gray-500 bg-white rounded-lg border border-dashed">
+    @if (!selectedDepartment()) {
+      Please select a department from the dropdown to view contacts. <br>
+      <span class="text-xs text-gray-400">(संपर्क पाहण्यासाठी कृपया वरील ड्रॉपडाउनमधून विभाग निवडा.)</span>
+    } @else {
+      No records found for this department. / या विभागासाठी कोणतेही रेकॉर्ड आढळले नाही.
+    }
+  </div>
+}
+  </div>
+
+</div>
