@@ -212,12 +212,24 @@ const rows = currentContacts.map(contact => [
     }
   }
 
+  
+
   onUploadFile() {
     if (!this.selectedFile) {
       alert('Please select an Excel or CSV file first! / कृपया आधी फाईल निवडा!');
       return;
     }
-
+    const formatOtherContact = (val: any): string => {
+      if (!val) return '-';
+      let strVal = String(val).trim();
+      if (strVal === '') return '-';
+      
+      // जर नंबर ९ अंकी असेल (मोबाईल मधील ० गायब झाला असल्यास) किंवा एसटीडी कोडचा ० गायब झाला असल्यास:
+      if (!strVal.startsWith('0') && (strVal.length === 9 || (strVal.length >= 4 && strVal.length <= 10 && /^\d+$/.test(strVal)))) {
+        strVal = '0' + strVal;
+      }
+      return strVal;
+    };
     const reader = new FileReader();
     reader.onload = (e: any) => {
       const data = new Uint8Array(e.target.result);
@@ -244,12 +256,16 @@ const rows = currentContacts.map(contact => [
         const address = row[2] ? String(row[2]).trim() : '-';
         const name = row[3] ? String(row[3]).trim() : '';
         const mobile = row[4] ? String(row[4]).trim() : '';
-        const telephone = row[5] ? String(row[5]).trim() : '-';
+        let telephone = row[5] ? String(row[5]).trim() : '-';
+        // टेलिफोन/एसटीडी कोड मधील ० गायब झाला असल्यास (उदा. ०२१४१ ऐवजी २१४१ झाला असल्यास):
+        if (telephone !== '-' && telephone.length > 0 && !telephone.startsWith('0') && telephone.length <= 10) {
+          telephone = '0' + telephone;
+        }
         const email = row[6] ? String(row[6]).trim() : '-';
-        const o1 = row[7] ? String(row[7]).trim() : '-';
-        const o2 = row[8] ? String(row[8]).trim() : '-';
-        const o3 = row[9] ? String(row[9]).trim() : '-';
-        const o4 = row[10] ? String(row[10]).trim() : '-';
+        const o1 = formatOtherContact(row[7]);
+        const o2 = formatOtherContact(row[8]);
+        const o3 = formatOtherContact(row[9]);
+        const o4 = formatOtherContact(row[10]);
 
         if (!name || !mobile) {
           errors.push(`Row ${i + 1}: Name and Mobile Number are required.`);
