@@ -242,11 +242,9 @@ onUploadFile() {
       const address = row[2] ? String(row[2]).trim() : '-';
       const name = row[3] ? String(row[3]).trim() : '';
       
-      // मोबाईल नंबर आणि शून्याची दुरुस्ती
+      
       let mobile = row[4] ? String(row[4]).trim() : '';
-      if (mobile.length === 9 && !mobile.startsWith('0')) {
-        mobile = '0' + mobile;
-      }
+
 
       // टेलिफोन नंबर आणि शून्याची दुरुस्ती
       let telephone = row[5] ? String(row[5]).trim() : '-';
@@ -258,7 +256,7 @@ onUploadFile() {
 
       // Other Contact 1 आणि शून्याची दुरुस्ती
       let o1 = row[7] ? String(row[7]).trim() : '-';
-      if (o1 !== '-' && o1.length === 9 && !o1.startsWith('0')) {
+      if (o1 !== '-' && o1.length <= 10 && !o1.startsWith('0')) {
         o1 = '0' + o1;
       }
 
