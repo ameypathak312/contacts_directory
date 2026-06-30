@@ -50,15 +50,6 @@
         </div>
       </div>
 
-      <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
-        <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
-        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Name, Mobile Number, Office Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
-        
-        <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-        
-        <button (click)="onUploadFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Upload File</button>
-      </div>
-
       <div class="border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
         <h2 class="text-lg font-semibold mb-3">
           {{ isEditing() ? 'Edit Contact / संपर्क संपादित करा' : 'Add Contact / नवीन संपर्क जोडा' }}
@@ -66,33 +57,42 @@
         <form (ngSubmit)="onSaveContact()" class="space-y-2">         
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Department / विभाग *</label>
-            <select [(ngModel)]="contactForm().department_name" name="formDept" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500">
+            <select [(ngModel)]="contactForm().department_name" name="formDept" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 text-sm">
               <option value="" disabled selected>-- Select Department --</option>
               @for (dept of departmentsList(); track dept) {
                 <option [value]="dept">{{ dept }}</option>
               }
             </select>
           </div>  
-          <input type="text" [(ngModel)]="contactForm().designation" name="designation" placeholder="Designation / हुद्दा" class="w-full border p-2 rounded">          
-          <input type="text" [(ngModel)]="contactForm().address" name="address" placeholder="Address / पत्ता" class="w-full border p-2 rounded">
-          <input type="text" [(ngModel)]="contactForm().name" name="name" placeholder="Name / नाव" class="w-full border p-2 rounded" required>
-          <input type="text" [(ngModel)]="contactForm().mobile_number" name="mobile" placeholder="Mobile / मोबाईल" class="w-full border p-2 rounded" required>
-          <input type="text" [(ngModel)]="contactForm().telephone_number" name="tele" placeholder="Telephone / दूरध्वनी" class="w-full border p-2 rounded">     
-          <input type="email" [(ngModel)]="contactForm().email" name="email" placeholder="Email / ईमेल" class="w-full border p-2 rounded">
-          <input type="text" [(ngModel)]="contactForm().other_contact_1" name="o1" placeholder="Other Contact 1 / इतर संपर्क १" class="w-full border p-2 rounded">
-          <input type="text" [(ngModel)]="contactForm().other_contact_2" name="o2" placeholder="Other Contact 2 / इतर संपर्क २" class="w-full border p-2 rounded">
-          <input type="text" [(ngModel)]="contactForm().other_contact_3" name="o3" placeholder="Other Contact 3 / इतर संपर्क ३" class="w-full border p-2 rounded">
-          <input type="text" [(ngModel)]="contactForm().other_contact_4" name="o4" placeholder="Other Contact 4 / इतर संपर्क ४" class="w-full border p-2 rounded">
+          <input type="text" [(ngModel)]="contactForm().designation" name="designation" placeholder="Designation / हुद्दा" class="w-full border p-2 rounded text-sm">          
+          <input type="text" [(ngModel)]="contactForm().address" name="address" placeholder="Address / पत्ता" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().name" name="name" placeholder="Name / नाव" class="w-full border p-2 rounded text-sm" required>
+          <input type="text" [(ngModel)]="contactForm().mobile_number" name="mobile" placeholder="Mobile / मोबाईल" class="w-full border p-2 rounded text-sm" required>
+          <input type="text" [(ngModel)]="contactForm().telephone_number" name="tele" placeholder="Telephone / दूरध्वनी" class="w-full border p-2 rounded text-sm">     
+          <input type="email" [(ngModel)]="contactForm().email" name="email" placeholder="Email / ईमेल" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().other_contact_1" name="o1" placeholder="Other Contact 1 / इतर संपर्क १" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().other_contact_2" name="o2" placeholder="Other Contact 2 / इतर संपर्क २" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().other_contact_3" name="o3" placeholder="Other Contact 3 / इतर संपर्क ३" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().other_contact_4" name="o4" placeholder="Other Contact 4 / इतर संपर्क ४" class="w-full border p-2 rounded text-sm">
               
-          <div class="flex gap-2">
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">
+          <div class="flex gap-2 pt-1">
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full text-sm font-semibold">
               {{ isEditing() ? 'Update' : 'Save' }}
             </button>
             @if (isEditing()) {
-              <button type="button" (click)="resetForm()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+              <button type="button" (click)="resetForm()" class="bg-gray-400 text-white px-4 py-2 rounded text-sm">Cancel</button>
             }
           </div>
         </form>
+      </div>
+
+      <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
+        <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
+        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Name, Mobile Number, Office Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
+        
+        <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        
+        <button (click)="onUploadFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm font-semibold w-full">Upload File</button>
       </div>
 
     </div>
