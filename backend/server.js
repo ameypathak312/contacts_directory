@@ -15,8 +15,13 @@ require('winston-daily-rotate-file');
 
 
 const app = express();
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:4200', // Render वरील फ्रंटएंड किंवा लोकलहोस्ट
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:4200' }));
 
 const upload = multer({ dest: 'uploads/' });
 app.use(bodyParser.json());
