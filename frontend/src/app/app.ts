@@ -180,8 +180,8 @@ onSaveContact() {
     const currentContacts = this.filteredContacts();
     
     const headers = [
-      'Department', 'Designation', 'Address', 'Name', 'Mobile Number', 
-      'Telephone Number','Email','Other Contact 1', 'Other Contact 2', 'Other Contact 3', 'Other Contact 4'
+      'Department', 'Designation', 'Office Address', 'Name', 'Mobile Number', 
+      'Office Telephone Number', 'Email', 'Other Contact 1', 'Other Contact 2', 'Other Contact 3', 'Other Contact 4'
     ];
     
 const rows = currentContacts.map(contact => [

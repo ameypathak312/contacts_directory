@@ -86,7 +86,7 @@
 
       <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
         <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
-        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Address, Name, Mobile Number, Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
+        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Name, Mobile Number, Office Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
         
         <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
         
@@ -128,10 +128,10 @@
         <tr class="bg-gray-100 text-gray-700 uppercase text-xs border-b">
           <th class="p-3">Department</th>
           <th class="p-3">Designation</th>
-          <th class="p-3">Address</th>
+          <th class="p-3">Office Address</th>
           <th class="p-3">Name</th>
           <th class="p-3">Mobile Number</th>
-          <th class="p-3">Telephone Number</th>
+          <th class="p-3">Office Telephone Number</th>
           <th class="p-3">Email</th>
           <th class="p-3">Other Contact 1</th>
           <th class="p-3">Other Contact 2</th>
