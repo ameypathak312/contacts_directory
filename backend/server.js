@@ -132,6 +132,34 @@ app.get('/api/departments', (req, res) => {
         res.json(results);
     });
 });
+// डिपार्टमेंट डिलीट करण्याचा API
+app.delete('/api/departments/:id', (req, res) => {
+  const departmentId = req.params.id;
+
+  // आधी तपासा की या डिपार्टमेंटमध्ये कोणते कॉन्टॅक्ट्स जोडलेले आहेत का?
+  // (डेटाबेस कन्सिस्टन्सीसाठी हे महत्त्वाचे आहे)
+  const checkContactsQuery = 'SELECT COUNT(*) AS count FROM contacts WHERE department_name = (SELECT name FROM departments WHERE id = ?)';
+  
+  db.query(checkContactsQuery, [departmentId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'डेटाबेस एरर आला.' });
+    }
+    
+    if (results[0].count > 0) {
+      return res.status(400).json({ error: 'या डिपार्टमेंटमध्ये कॉन्टॅक्ट्स आहेत, त्यामुळे हे डिलीट करता येणार नाही!' });
+    }
+
+    // जर कोणतेही कॉन्टॅक्ट्स नसतील तर डिलीट करा
+    const deleteQuery = 'DELETE FROM departments WHERE id = ?';
+    db.query(deleteQuery, [departmentId], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'डार्टमेंट डिलीट करताना एरर आला.' });
+      }
+      res.json({ message: 'डिपार्टमेंट यशस्वीरित्या डिलीट केले!' });
+    });
+  });
+});
+
 
 // --- ADMIN PROTECTED ROUTES ---
 

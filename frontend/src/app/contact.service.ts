@@ -83,6 +83,11 @@ export class ContactService {
     }
   }
 
+    
+  deleteDepartment(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/departments/${id}`, this.getHeaders());
+  }
+  
   deleteContact(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/contacts/${id}`, this.getHeaders());
   }

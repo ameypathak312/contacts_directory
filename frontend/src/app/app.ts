@@ -119,6 +119,21 @@ filteredContacts = computed(() => {
       }
     });
   }
+  
+  deleteDepartment(id: number) {
+  if (confirm('तुम्हाला खात्री आहे का की तुम्ही हे डिपार्टमेंट डिलीट करू इच्छिता?')) {
+    this.contactService.deleteDepartment(id).subscribe({
+      next: (res) => {
+        alert(res.message);
+        // लिस्ट रीफ्रेश करण्यासाठी तुमच्याकडे जे फंक्शन असेल ते इथे कॉल करा
+        // उदा. this.getDepartments(); 
+      },
+      error: (err) => {
+        alert(err.error?.error || 'डिपार्टमेंट डिलीट करता आले नाही!');
+      }
+    });
+  }
+}
 
 onSaveContact() {
   const currentForm = this.contactForm();
