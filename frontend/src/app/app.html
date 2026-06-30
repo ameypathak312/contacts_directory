@@ -26,7 +26,40 @@
   @if (contactService.isAdmin()) {
     <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
       
-      <div class="md:col-span-1">
+      <div class="flex flex-col justify-start pt-2 md:pt-0">
+        <h2 class="text-lg font-semibold mb-2">Department Management / विभाग व्यवस्थापन</h2>
+        <p class="text-xs text-gray-500 mb-3">Add or remove structured department configurations.</p>
+        
+        <div class="mb-4 pb-4 border-b border-gray-200">
+          <input type="text" [ngModel]="newDepartmentName()" (ngModelChange)="newDepartmentName.set($event)" placeholder="New Department Name" class="w-full border p-2 mb-2 rounded text-sm">
+          <button (click)="onAddDepartment()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition w-full text-sm font-semibold">Create Department</button>
+        </div>
+
+        <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Existing Departments / उपलब्ध विभाग:</h3>
+        <div class="max-h-60 overflow-y-auto pr-2 space-y-1.5 border border-gray-200 p-2 rounded bg-white">
+          @for (dept of allDepartments(); track dept.id) {
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100 text-sm shadow-sm">
+              <span class="truncate font-medium text-gray-700 max-w-[140px]" [title]="dept.name">{{ dept.name }}</span>
+              <button (click)="deleteDepartment(dept.id!)" class="text-xs text-red-600 hover:text-red-800 font-semibold border border-red-200 hover:bg-red-50 px-2 py-1 rounded transition">
+                Delete
+              </button>
+            </div>
+          } @empty {
+            <p class="text-xs text-gray-400 text-center py-4">No departments found.</p>
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
+        <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
+        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Name, Mobile Number, Office Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
+        
+        <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        
+        <button (click)="onUploadFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Upload File</button>
+      </div>
+
+      <div class="border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
         <h2 class="text-lg font-semibold mb-3">
           {{ isEditing() ? 'Edit Contact / संपर्क संपादित करा' : 'Add Contact / नवीन संपर्क जोडा' }}
         </h2>
@@ -62,36 +95,6 @@
         </form>
       </div>
 
-    <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
-      <h2 class="text-lg font-semibold mb-2">Department Management / विभाग व्यवस्थापन</h2>
-      <p class="text-xs text-gray-500 mb-3">Add or remove structured department configurations.</p>
-      
-      <div class="mb-4 pb-4 border-b border-gray-200">
-        <input type="text" [ngModel]="newDepartmentName()" (ngModelChange)="newDepartmentName.set($event)" placeholder="New Department Name" class="w-full border p-2 mb-2 rounded text-sm">
-        <button (click)="onAddDepartment()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition w-full text-sm font-semibold">Create Department</button>
-      </div>
-
-      <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Existing Departments / उपलब्ध विभाग:</h3>
-      <div class="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-        @for (dept of allDepartments(); track dept.id) {
-          <div class="flex justify-between items-center bg-white p-2 rounded border border-gray-200 text-sm shadow-sm">
-            <span class="truncate font-medium text-gray-700" [title]="dept.name">{{ dept.name }}</span>
-            <button (click)="deleteDepartment(dept.id!)" class="text-xs text-red-600 hover:text-red-800 font-semibold border border-red-200 hover:bg-red-50 px-2 py-1 rounded transition">
-              Delete
-            </button>
-          </div>
-        }
-      </div>
-    </div>
-
-      <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
-        <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
-        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Name, Mobile Number, Office Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
-        
-        <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-        
-        <button (click)="onUploadFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Upload File</button>
-      </div>
     </div>
   }
 
@@ -245,15 +248,15 @@
         }
       </div>
     }@empty {
-  <div class="text-center p-8 text-gray-500 bg-white rounded-lg border border-dashed">
-    @if (!selectedDepartment()) {
-      Please select a department from the dropdown to view contacts. <br>
-      <span class="text-xs text-gray-400">(संपर्क पाहण्यासाठी कृपया वरील ड्रॉपडाउनमधून विभाग निवडा.)</span>
-    } @else {
-      No records found for this department. / या विभागासाठी कोणतेही रेकॉर्ड आढळले नाही.
+      <div class="text-center p-8 text-gray-500 bg-white rounded-lg border border-dashed">
+        @if (!selectedDepartment()) {
+          Please select a department from the dropdown to view contacts. <br>
+          <span class="text-xs text-gray-400">(संपर्क पाहण्यासाठी कृपया वरील ड्रॉपडाउनमधून विभाग निवडा.)</span>
+        } @else {
+          No records found for this department. / या विभागासाठी कोणतेही रेकॉर्ड आढळले नाही.
+        }
+      </div>
     }
-  </div>
-}
   </div>
 
 </div>
