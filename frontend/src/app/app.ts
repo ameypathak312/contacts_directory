@@ -176,141 +176,145 @@ onSaveContact() {
     }
   }
 
-  exportData(format: 'excel' | 'csv') {
-    const currentContacts = this.filteredContacts();
-    
-    const headers = [
-      'Department', 'Designation', 'Office Address', 'Name', 'Mobile Number', 
-      'Office Telephone Number', 'Email', 'Other Contact 1', 'Other Contact 2', 'Other Contact 3', 'Other Contact 4'
-    ];
-    
-const rows = currentContacts.map(contact => [
-  contact.department_name || '-',
-  contact.designation || '-',
-  contact.address || '-',
-  contact.name || '-',
-  contact.mobile_number ? `\t${contact.mobile_number}` : '', 
-  contact.telephone_number ? `\t${contact.telephone_number}` : '-',
-  contact.email || '-',
-  contact.other_contact_1 ? `\t${contact.other_contact_1}` : '-',
-  contact.other_contact_2 ? `\t${contact.other_contact_2}` : '-',
-  contact.other_contact_3 ? `\t${contact.other_contact_3}` : '-',
-  contact.other_contact_4 ? `\t${contact.other_contact_4}` : '-'
-]);
+exportData(type: 'excel' | 'csv') {
+  // १. नवीन नियमांनुसार फक्त ८ हेडर्स ठेवले आहेत
+  const headers = [
+    'Department', 'Designation', 'Office Address', "Officer's Name", 'Mobile Number', 
+    'Office Telephone Number', 'Official Email Id', 'Other Contact'
+  ];
 
-    const worksheetData = [headers, ...rows];
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Contacts');
+  // २. डेटा मॅपिंग करताना केवळ relevant ८ गोष्टी जोडल्या आहेत
+  const rows = this.filteredContacts().map(contact => [
+    contact.department_name || '-',
+    contact.designation || '-',
+    contact.address || '-',
+    contact.name || '',
+    contact.mobile_number || '',
+    contact.telephone_number || '-',
+    contact.email || '-',
+    contact.other_contact_1 || '-'
+  ]);
 
-    const currentDate = new Date().toISOString().slice(0, 10);
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Contacts');
 
-    if (format === 'excel') {
-      XLSX.writeFile(workbook, `contacts_directory_${currentDate}.xlsx`);
-    } else {
-      XLSX.writeFile(workbook, `contacts_directory_${currentDate}.csv`, { bookType: 'csv' });
-    }
+  if (type === 'excel') {
+    XLSX.writeFile(workbook, 'contacts_directory.xlsx');
+  } else {
+    XLSX.writeFile(workbook, 'contacts_directory.csv', { bookType: 'csv' });
   }
+}
 
   
 
-  onUploadFile() {
-    if (!this.selectedFile) {
-      alert('Please select an Excel or CSV file first! / कृपया आधी फाईल निवडा!');
+onUploadFile() {
+  if (!this.selectedFile) {
+    alert('Please select a file first.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e: any) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // raw: true मुळे xlsx लायब्ररी डेटा जसा आहे तसा वाचेल
+    const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
+
+    if (jsonData.length <= 1) {
+      alert('The uploaded file is empty or contains no data rows.');
       return;
     }
-    const formatOtherContact = (val: any): string => {
-      if (!val) return '-';
-      let strVal = String(val).trim();
-      if (strVal === '') return '-';
+
+    const validContactsToUpload: any[] = [];
+    const errors: string[] = [];
+
+    // पहिली ओळ हेडरची सोडून डेटा वाचणे
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      if (!row || row.length === 0) continue;
+
+      const departmentName = row[0] ? String(row[0]).trim() || '' : '';
+      const designation = row[1] ? String(row[1]).trim() : '-';
+      const address = row[2] ? String(row[2]).trim() : '-';
+      const name = row[3] ? String(row[3]).trim() : '';
       
-      // जर नंबर ९ अंकी असेल (मोबाईल मधील ० गायब झाला असल्यास) किंवा एसटीडी कोडचा ० गायब झाला असल्यास:
-      if (!strVal.startsWith('0') && (strVal.length === 9 || (strVal.length >= 4 && strVal.length <= 10 && /^\d+$/.test(strVal)))) {
-        strVal = '0' + strVal;
-      }
-      return strVal;
-    };
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      if (jsonData.length <= 1) {
-        alert('The uploaded file is empty or missing data!');
-        return;
+      // मोबाईल नंबर आणि शून्याची दुरुस्ती
+      let mobile = row[4] ? String(row[4]).trim() : '';
+      if (mobile.length === 9 && !mobile.startsWith('0')) {
+        mobile = '0' + mobile;
       }
 
-      const allowedDepartments = this.departmentsList(); 
-      const validContactsToUpload: any[] = [];
-      const errors: string[] = [];
-
-      for (let i = 1; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (!row || row.length === 0 || (!row[0] && !row[3])) continue; 
-
-        const departmentName = row[0] ? String(row[0]).trim() : '';
-        const designation = row[1] ? String(row[1]).trim() : '-';
-        const address = row[2] ? String(row[2]).trim() : '-';
-        const name = row[3] ? String(row[3]).trim() : '';
-        const mobile = row[4] ? String(row[4]).trim() : '';
-        let telephone = row[5] ? String(row[5]).trim() : '-';
-        // टेलिफोन/एसटीडी कोड मधील ० गायब झाला असल्यास (उदा. ०२१४१ ऐवजी २१४१ झाला असल्यास):
-        if (telephone !== '-' && telephone.length > 0 && !telephone.startsWith('0') && telephone.length <= 10) {
-          telephone = '0' + telephone;
-        }
-        const email = row[6] ? String(row[6]).trim() : '-';
-        const o1 = formatOtherContact(row[7]);
-        const o2 = formatOtherContact(row[8]);
-        const o3 = formatOtherContact(row[9]);
-        const o4 = formatOtherContact(row[10]);
-
-        if (!name || !mobile) {
-          errors.push(`Row ${i + 1}: Name and Mobile Number are required.`);
-          continue;
-        }
-
-        if (!allowedDepartments.includes(departmentName)) {
-          errors.push(`Row ${i + 1}: Failed Constraint! Department '${departmentName}' does not exist.`);
-          continue;
-        }
-
-        validContactsToUpload.push({          
-          designation: designation,
-          department_name: departmentName,
-          address: address,
-          name: name,
-          mobile_number: mobile,
-          telephone_number: telephone,
-          email: email,
-          other_contact_1: o1,
-          other_contact_2: o2,
-          other_contact_3: o3,
-          other_contact_4: o4          
-        });
+      // टेलिफोन नंबर आणि शून्याची दुरुस्ती
+      let telephone = row[5] ? String(row[5]).trim() : '-';
+      if (telephone !== '-' && telephone.length > 0 && !telephone.startsWith('0') && telephone.length <= 10) {
+        telephone = '0' + telephone;
       }
 
-      if (errors.length > 0) {
-        console.error('Import Errors:', errors);
-        alert(`Import Failed due to Department Constraints!\n\n${errors.slice(0, 3).join('\n')}\n...and ${errors.length - 3} more errors.`);
-        return;
+      const email = row[6] ? String(row[6]).trim() : '-';
+
+      // Other Contact 1 आणि शून्याची दुरुस्ती
+      let o1 = row[7] ? String(row[7]).trim() : '-';
+      if (o1 !== '-' && o1.length === 9 && !o1.startsWith('0')) {
+        o1 = '0' + o1;
       }
 
-      if (validContactsToUpload.length > 0) {
-        this.contactService.bulkImportContacts(validContactsToUpload).subscribe({
-          next: () => {
-            alert(`Success! ${validContactsToUpload.length} records imported successfully.`);
-            this.loadContacts();
-            this.selectedFile = null;
-          },
-          error: () => alert('Backend service error during bulk import.')
-        });
+      // व्हॅलिडेशन नियम
+      if (!departmentName) {
+        errors.push(`Row ${i + 1}: Department name is missing.`);
+        continue;
       }
-    };
-    reader.readAsArrayBuffer(this.selectedFile);
-  }  
+      if (!this.departmentsList().includes(departmentName)) {
+        errors.push(`Row ${i + 1}: Department '${departmentName}' does not exist.`);
+        continue;
+      }
+      if (!name) {
+        errors.push(`Row ${i + 1}: Officer's Name is missing.`);
+        continue;
+      }
+      if (!mobile) {
+        errors.push(`Row ${i + 1}: Mobile number is missing.`);
+        continue;
+      }
+
+      // बॅकएंडला पाठवताना २, ३, ४ ची व्हॅल्यू explicit null ठेवणे
+      validContactsToUpload.push({          
+        designation: designation,
+        department_name: departmentName,
+        address: address,
+        name: name,
+        mobile_number: mobile,
+        telephone_number: telephone,
+        email: email,
+        other_contact_1: o1,
+        other_contact_2: null, // 👈 UI वरून काढून टाकल्यामुळे null पाठवले
+        other_contact_3: null, // 👈 null पाठवले
+        other_contact_4: null  // 👈 null पाठवले
+      });
+    }
+
+    if (errors.length > 0) {
+      console.error('Import Errors:', errors);
+      alert(`Import Failed!\\n\\n${errors.slice(0, 3).join('\\n')}\\n...and ${errors.length - 3} more errors.`);
+      return;
+    }
+
+    if (validContactsToUpload.length > 0) {
+      this.contactService.bulkImportContacts(validContactsToUpload).subscribe({
+        next: () => {
+          alert(`Success! ${validContactsToUpload.length} records imported successfully.`);
+          this.loadContacts();
+          this.selectedFile = null;
+        },
+        error: () => alert('Backend service error during bulk import.')
+      });
+    }
+  };
+  reader.readAsArrayBuffer(this.selectedFile);
+}  
 
   resetForm() {
     this.isEditing.set(false);

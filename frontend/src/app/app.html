@@ -65,16 +65,12 @@
             </select>
           </div>  
           <input type="text" [(ngModel)]="contactForm().designation" name="designation" placeholder="Designation / हुद्दा" class="w-full border p-2 rounded text-sm">          
-          <input type="text" [(ngModel)]="contactForm().address" name="address" placeholder="Address / पत्ता" class="w-full border p-2 rounded text-sm">
-          <input type="text" [(ngModel)]="contactForm().name" name="name" placeholder="Name / नाव" class="w-full border p-2 rounded text-sm" required>
+          <input type="text" [(ngModel)]="contactForm().address" name="address" placeholder="Office Address / कार्यालयीन पत्ता" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().name" name="name" placeholder="Officer's Name / अधिकाऱ्याचे नाव" class="w-full border p-2 rounded text-sm" required>
           <input type="text" [(ngModel)]="contactForm().mobile_number" name="mobile" placeholder="Mobile / मोबाईल" class="w-full border p-2 rounded text-sm" required>
-          <input type="text" [(ngModel)]="contactForm().telephone_number" name="tele" placeholder="Telephone / दूरध्वनी" class="w-full border p-2 rounded text-sm">     
-          <input type="email" [(ngModel)]="contactForm().email" name="email" placeholder="Email / ईमेल" class="w-full border p-2 rounded text-sm">
-          <input type="text" [(ngModel)]="contactForm().other_contact_1" name="o1" placeholder="Other Contact 1 / इतर संपर्क १" class="w-full border p-2 rounded text-sm">
-          <input type="text" [(ngModel)]="contactForm().other_contact_2" name="o2" placeholder="Other Contact 2 / इतर संपर्क २" class="w-full border p-2 rounded text-sm">
-          <input type="text" [(ngModel)]="contactForm().other_contact_3" name="o3" placeholder="Other Contact 3 / इतर संपर्क ३" class="w-full border p-2 rounded text-sm">
-          <input type="text" [(ngModel)]="contactForm().other_contact_4" name="o4" placeholder="Other Contact 4 / इतर संपर्क ४" class="w-full border p-2 rounded text-sm">
-              
+          <input type="text" [(ngModel)]="contactForm().telephone_number" name="tele" placeholder="Office Telephone Number / दूरध्वनी" class="w-full border p-2 rounded text-sm">     
+          <input type="email" [(ngModel)]="contactForm().email" name="email" placeholder="Official Email Id / ईमेल" class="w-full border p-2 rounded text-sm">
+          <input type="text" [(ngModel)]="contactForm().other_contact_1" name="o1" placeholder="Other Contact / इतर संपर्क" class="w-full border p-2 rounded text-sm">
           <div class="flex gap-2 pt-1">
             <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full text-sm font-semibold">
               {{ isEditing() ? 'Update' : 'Save' }}
@@ -88,7 +84,7 @@
 
       <div class="flex flex-col justify-start border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-gray-300">
         <h2 class="text-lg font-semibold mb-1">Bulk Import / एकत्रित डेटा अपलोड</h2>
-        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Name, Mobile Number, Office Telephone Number, Email, Other Contact 1, Other Contact 2, Other Contact 3, Other Contact 4</code></p>
+        <p class="text-xs text-gray-500 mb-3">Expected headers: <code>Department, Designation, Office Address, Officer's Name, Mobile Number, Office Telephone Number, Official Email Id, Other Contact</code></p>
         
         <input type="file" (change)="onFileSelected($event)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mb-3 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
         
@@ -132,15 +128,9 @@
           <th class="p-3">Department</th>
           <th class="p-3">Designation</th>
           <th class="p-3">Office Address</th>
-          <th class="p-3">Name</th>
-          <th class="p-3">Mobile Number</th>
+          <th class="p-3">Officer's Name</th> <th class="p-3">Mobile Number</th>
           <th class="p-3">Office Telephone Number</th>
-          <th class="p-3">Email</th>
-          <th class="p-3">Other Contact 1</th>
-          <th class="p-3">Other Contact 2</th>
-          <th class="p-3">Other Contact 3</th>
-          <th class="p-3">Other Contact 4</th>
-          @if (contactService.isAdmin()) { <th class="p-3 text-right">Actions</th> }
+          <th class="p-3">Official Email Id</th> <th class="p-3">Other Contact</th> @if (contactService.isAdmin()) { <th class="p-3 text-right">Actions</th> }
         </tr>
       </thead>
       <tbody class="text-gray-600 text-sm">
@@ -154,9 +144,6 @@
             <td class="p-3">{{ contact.telephone_number || '-' }}</td>
             <td class="p-3">{{ contact.email || '-' }}</td>
             <td class="p-3">{{ contact.other_contact_1 || '-' }}</td>
-            <td class="p-3">{{ contact.other_contact_2 || '-' }}</td>
-            <td class="p-3">{{ contact.other_contact_3 || '-' }}</td>
-            <td class="p-3">{{ contact.other_contact_4 || '-' }}</td>
             @if (contactService.isAdmin()) {
               <td class="p-3 text-right space-x-2 whitespace-nowrap">
                 <button (click)="onEditContact(contact)" class="text-blue-600 hover:underline">Edit</button>
@@ -182,7 +169,7 @@
 
         @if (contact.address) {
           <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded border border-dashed">
-            <strong>Address:</strong> {{ contact.address }}
+            <strong>Office Address:</strong> {{ contact.address }}
           </div>
         }
 
@@ -203,39 +190,14 @@
             <button type="button" (click)="copyToClipboard(contact.email)" class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded font-semibold active:scale-95 transition">Copy</button>
           </div>
         }
-        @if (contact.other_contact_1 || contact.other_contact_2 || contact.other_contact_3 || contact.other_contact_4) {
+        @if (contact.other_contact_1 && contact.other_contact_1 !== '-') {
           <div class="bg-gray-50 p-2 rounded border border-gray-100 text-xs space-y-2 text-gray-700">
-            <strong class="block border-b pb-1 mb-1 text-gray-500">Other Contacts / इतर संपर्क:</strong>
+            <strong class="block border-b pb-1 mb-1 text-gray-500">Other Contact / इतर संपर्क:</strong>
             <div class="grid grid-cols-1 gap-2">
-              
-              @if (contact.other_contact_1 && contact.other_contact_1 !== '-') {
-                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
-                  <span><strong>①:</strong> {{ contact.other_contact_1 }}</span>
-                  <button type="button" (click)="copyToClipboard(contact.other_contact_1)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
-                </div>
-              }
-              
-              @if (contact.other_contact_2 && contact.other_contact_2 !== '-') {
-                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
-                  <span><strong>②:</strong> {{ contact.other_contact_2 }}</span>
-                  <button type="button" (click)="copyToClipboard(contact.other_contact_2)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
-                </div>
-              }
-              
-              @if (contact.other_contact_3 && contact.other_contact_3 !== '-') {
-                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
-                  <span><strong>③:</strong> {{ contact.other_contact_3 }}</span>
-                  <button type="button" (click)="copyToClipboard(contact.other_contact_3)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
-                </div>
-              }
-              
-              @if (contact.other_contact_4 && contact.other_contact_4 !== '-') {
-                <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
-                  <span><strong>④:</strong> {{ contact.other_contact_4 }}</span>
-                  <button type="button" (click)="copyToClipboard(contact.other_contact_4)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
-                </div>
-              }
-
+              <div class="flex justify-between items-center bg-white p-1.5 rounded border border-gray-200 shadow-sm">
+                <span>{{ contact.other_contact_1 }}</span>
+                <button type="button" (click)="copyToClipboard(contact.other_contact_1)" class="bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded font-semibold active:scale-95 transition border border-blue-200">Copy</button>
+              </div>
             </div>
           </div>
         }
