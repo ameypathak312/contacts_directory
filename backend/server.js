@@ -132,30 +132,41 @@ app.get('/api/departments', (req, res) => {
         res.json(results);
     });
 });
-// डिपार्टमेंट डिलीट करण्याचा API
+// विभाग (Department) डिलीट करण्याचा सुरक्षित API (With Constraint)
 app.delete('/api/departments/:id', (req, res) => {
   const departmentId = req.params.id;
 
-  // आधी तपासा की या डिपार्टमेंटमध्ये कोणते कॉन्टॅक्ट्स जोडलेले आहेत का?
-  // (डेटाबेस कन्सिस्टन्सीसाठी हे महत्त्वाचे आहे)
-  const checkContactsQuery = 'SELECT COUNT(*) AS count FROM contacts WHERE department_name = (SELECT name FROM departments WHERE id = ?)';
-  
-  db.query(checkContactsQuery, [departmentId], (err, results) => {
+  // १. आधी या डिपार्टमेंटचे नाव काय आहे ते शोधू आणि त्यात काही कॉन्टॅक्ट्स आहेत का ते तपासू
+  const checkQuery = `
+    SELECT COUNT(*) AS contactCount 
+    FROM contacts 
+    WHERE department_name = (SELECT name FROM departments WHERE id = ?)
+  `;
+
+  db.query(checkQuery, [departmentId], (err, results) => {
     if (err) {
-      return res.status(500).json({ error: 'डेटाबेस एरर आला.' });
-    }
-    
-    if (results[0].count > 0) {
-      return res.status(400).json({ error: 'या डिपार्टमेंटमध्ये कॉन्टॅक्ट्स आहेत, त्यामुळे हे डिलीट करता येणार नाही!' });
+      console.error("डेटाबेस तपासताना एरर आला:", err);
+      return res.status(500).json({ error: 'डेटाबेस सर्व्हरमध्ये काहीतरी त्रुटी आली आहे.' });
     }
 
-    // जर कोणतेही कॉन्टॅक्ट्स नसतील तर डिलीट करा
+    // जर निकालामध्ये काउंट ० पेक्षा जास्त असेल, तर डिलीट करू नका
+    const contactCount = results[0]?.contactCount || 0;
+    
+    if (contactCount > 0) {
+      return res.status(400).json({ 
+        error: `या विभागामध्ये ${contactCount} संपर्क (Contacts) उपलब्ध आहेत! आधी ते डिलीट करा किंवा दुसऱ्या विभागात हलवा.` 
+      });
+    }
+
+    // २. जर एकही कॉन्टॅक्ट नसेल, तरच डिपार्टमेंट सुरक्षितपणे डिलीट करा
     const deleteQuery = 'DELETE FROM departments WHERE id = ?';
     db.query(deleteQuery, [departmentId], (err, result) => {
       if (err) {
-        return res.status(500).json({ error: 'डार्टमेंट डिलीट करताना एरर आला.' });
+        console.error("विभाग डिलीट करताना एरर आला:", err);
+        return res.status(500).json({ error: 'विभाग डिलीट करता आला नाही.' });
       }
-      res.json({ message: 'डिपार्टमेंट यशस्वीरित्या डिलीट केले!' });
+      
+      res.json({ message: 'विभाग यशस्वीरित्या डिलीट करण्यात आला आहे!' });
     });
   });
 });
