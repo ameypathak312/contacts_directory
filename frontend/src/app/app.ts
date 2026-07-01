@@ -41,18 +41,22 @@ export class AppComponent implements OnInit {
 
 
 filteredContacts = computed(() => {
+  // 💡 जर कोणताही विभाग निवडलेला नसेल (रिकामी स्ट्रिंग असेल), तर थेट रिकामा अ‍ॅरे [] पाठवा, संपर्क दाखवू नका.
+  if (!this.selectedDepartment()) {
+    return [];
+  }
+
   let contacts = this.allContacts();
 
-  // 💡 एक्सेलच्या मूळ क्रमानुसार दाखवण्यासाठी ID नुसार सॉर्टिंग (चढता क्रम - Ascending Order)
-  // ज्यामुळे आधी अपलोड झालेले रेकॉर्ड्स वर आणि नंतरचे खाली फाईलच्या क्रमाने दिसतील
+  // एक्सेलच्या मूळ क्रमानुसार दाखवण्यासाठी ID नुसार सॉर्टिंग
   contacts = [...contacts].sort((a, b) => {
     return (a.id || 0) - (b.id || 0);
   });
 
-  if (this.selectedDepartment()) {
-    contacts = contacts.filter(c => c.department_name === this.selectedDepartment());
-  }
+  // निवडलेल्या विभागानुसार फिल्टर करणे
+  contacts = contacts.filter(c => c.department_name === this.selectedDepartment());
 
+  // सर्च बारनुसार फिल्टर करणे
   const search = this.searchTerm().toLowerCase().trim();
   if (search) {
     contacts = contacts.filter(c => 
