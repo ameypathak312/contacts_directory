@@ -39,32 +39,31 @@ export class AppComponent implements OnInit {
     return this.allDepartments().map(d => d.name).sort();
   });
 
-// 💡 app.ts मधील filteredContacts सिग्नल अपडेट करा
+
 filteredContacts = computed(() => {
-  const deptFilter = this.selectedDepartment();
-  
-  // 🚨 जर युझरने कोणताही विभाग निवडला नसेल, तर सुरुवातीला एकही रेकॉर्ड दिसणार नाही
-  if (!deptFilter) {
-    return [];
+  let contacts = this.allContacts();
+
+  // 💡 एक्सेलच्या मूळ क्रमानुसार दाखवण्यासाठी ID नुसार सॉर्टिंग (चढता क्रम - Ascending Order)
+  // ज्यामुळे आधी अपलोड झालेले रेकॉर्ड्स वर आणि नंतरचे खाली फाईलच्या क्रमाने दिसतील
+  contacts = [...contacts].sort((a, b) => {
+    return (a.id || 0) - (b.id || 0);
+  });
+
+  if (this.selectedDepartment()) {
+    contacts = contacts.filter(c => c.department_name === this.selectedDepartment());
   }
 
-  let contacts = this.allContacts();
   const search = this.searchTerm().toLowerCase().trim();
-
-  // निवडलेल्या विभागानुसार फिल्टर करणे
-  contacts = contacts.filter(c => c.department_name === deptFilter);
-
-  // सर्च बारमधील कीवर्डनुसार फिल्टर करणे
   if (search) {
     contacts = contacts.filter(c => 
-      c.name.toLowerCase().includes(search) || 
+      c.name.toLowerCase().includes(search) ||
       (c.designation && c.designation.toLowerCase().includes(search)) ||
-      (c.address && c.address.toLowerCase().includes(search)) ||
-      c.mobile_number.includes(search)
+      c.mobile_number.includes(search) ||
+      (c.telephone_number && c.telephone_number.includes(search))
     );
   }
-  
-  return contacts;    
+
+  return contacts;
 });
 
   ngOnInit() {
@@ -143,17 +142,26 @@ onSaveContact() {
     return;
   }
 
-  // सर्व्हिस कॉल करून डेटा सेव्ह करणे
-  this.contactService.saveContact(currentForm).subscribe({
-    next: (res) => {
-      alert(res.message || 'Contact saved successfully!');
-      this.resetForm(); // फॉर्म रिसेट करणे
-      this.loadContacts(); // टेबल डेटा रिफ्रेश करणे
-    },
-    error: (err) => {
-      alert(err.error?.message || 'Error saving contact.');
-    }
-  });
+this.contactService.saveContact(currentForm).subscribe({
+  next: (res: any) => {
+    alert(this.isEditing() ? 'संपर्क यशस्वीरित्या अद्ययावत केला गेला आहे!' : 'नवीन संपर्क यशस्वीरित्या जतन केला गेला आहे!');
+    
+    // १. सर्व संपर्क डेटाबेसमधून पुन्हा ताजे लोड करा
+    this.contactService.getContacts().subscribe({
+      next: (data) => {
+        // २. नवीन आयडीसह डेटा सेव्ह झाल्याची खात्री करून सिग्नल्स अपडेट करा
+        this.allContacts.set(data);
+        this.resetForm();
+      },
+      error: () => this.loadContacts() // बॅकअप म्हणून जुने फंक्शन
+    });
+  },
+  error: (err) => {
+    console.error(err);
+    alert('संपर्क सेव्ह करताना काहीतरी त्रुटी आली!');
+  }
+});
+
 }
 
   onEditContact(contact: Contact) {
@@ -256,7 +264,7 @@ onUploadFile() {
 
       // Other Contact 1 आणि शून्याची दुरुस्ती
       let o1 = row[7] ? String(row[7]).trim() : '-';
-      if (o1 !== '-' && o1.length <= 10 && !o1.startsWith('0')) {
+      if (o1 !== '-' && o1.length === 10 && !o1.startsWith('0')) {
         o1 = '0' + o1;
       }
 
