@@ -195,24 +195,40 @@ exportData(type: 'excel' | 'csv') {
     'Office Telephone Number', 'Official Email Id', 'Other Contact'
   ];
 
-  // २. डेटा मॅपिंग - XLSX च्या विशिष्ट फॉरमॅटनुसार (Cell Object Format)
-  // { v: value, t: 's' } चा अर्थ 't: s' म्हणजे Type: String (यामुळे सुरुवातीचा 0 कट होत नाही)
-  const rows = this.filteredContacts().map(contact => [
-    { v: contact.department_name || '-', t: 's' },
-    { v: contact.designation || '-', t: 's' },
-    { v: contact.address || '-', t: 's' },
-    { v: contact.name || '', t: 's' },
-    { v: contact.mobile_number || '', t: 's' }, // मोबाईलचा 0 सुरक्षित राहील
-    { v: contact.telephone_number || '-', t: 's' }, // टेलिफोनचा 0 सुरक्षित राहील
-    { v: contact.email || '-', t: 's' },
-    { v: contact.other_contact_1 || '-', t: 's' } // इतर संपर्काचा 0 सुरक्षित राहील
-  ]);
+  let worksheet: XLSX.WorkSheet;
 
-  // ३. वर्कशीट तयार करताना आधीच्या फॉरमॅटचा वापर करणे
-  const worksheet = XLSX.utils.aoa_to_sheet([
-    headers.map(h => ({ v: h, t: 's' })), // हेडर्स देखील टेक्स्ट म्हणून
-    ...rows
-  ]);
+  if (type === 'csv') {
+    // 💡 CSV साठी विशेष युक्ती: नंबरच्या सुरुवातीला =" आणि शेवटी " जोडल्यामुळे एक्सेल 0 कधीही कट करत नाही
+    const csvRows = this.filteredContacts().map(contact => [
+      contact.department_name || '-',
+      contact.designation || '-',
+      contact.address || '-',
+      contact.name || '',
+      contact.mobile_number ? `="${contact.mobile_number}"` : '', // 👈 उदा. ="0987654321" असे दिसेल
+      contact.telephone_number && contact.telephone_number !== '-' ? `="${contact.telephone_number}"` : '-',
+      contact.email || '-',
+      contact.other_contact_1 && contact.other_contact_1 !== '-' ? `="${contact.other_contact_1}"` : '-'
+    ]);
+
+    worksheet = XLSX.utils.aoa_to_sheet([headers, ...csvRows]);
+  } else {
+    // 💡 Excel (.xlsx) साठी नेहमीचा Cell Object फॉरमॅट (Type String) उत्तम काम करतो
+    const excelRows = this.filteredContacts().map(contact => [
+      { v: contact.department_name || '-', t: 's' },
+      { v: contact.designation || '-', t: 's' },
+      { v: contact.address || '-', t: 's' },
+      { v: contact.name || '', t: 's' },
+      { v: contact.mobile_number || '', t: 's' },
+      { v: contact.telephone_number || '-', t: 's' },
+      { v: contact.email || '-', t: 's' },
+      { v: contact.other_contact_1 || '-', t: 's' }
+    ]);
+
+    worksheet = XLSX.utils.aoa_to_sheet([
+      headers.map(h => ({ v: h, t: 's' })),
+      ...excelRows
+    ]);
+  }
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Contacts');
@@ -220,7 +236,7 @@ exportData(type: 'excel' | 'csv') {
   if (type === 'excel') {
     XLSX.writeFile(workbook, 'contacts_directory.xlsx');
   } else {
-    // CSV साठी देखील स्ट्रिंग फॉरमॅट टिकवून ठेवण्यासाठी पर्याय
+    // CSV डाउनलोड पर्याय
     XLSX.writeFile(workbook, 'contacts_directory.csv', { bookType: 'csv' });
   }
 }
