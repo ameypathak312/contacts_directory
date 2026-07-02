@@ -189,31 +189,38 @@ this.contactService.saveContact(currentForm).subscribe({
   }
 
 exportData(type: 'excel' | 'csv') {
-  // १. नवीन नियमांनुसार फक्त ८ हेडर्स ठेवले आहेत
+  // १. हेडर्स व्याख्या
   const headers = [
     'Department', 'Designation', 'Office Address', "Officer's Name", 'Mobile Number', 
     'Office Telephone Number', 'Official Email Id', 'Other Contact'
   ];
 
-  // २. डेटा मॅपिंग करताना केवळ relevant ८ गोष्टी जोडल्या आहेत
+  // २. डेटा मॅपिंग - XLSX च्या विशिष्ट फॉरमॅटनुसार (Cell Object Format)
+  // { v: value, t: 's' } चा अर्थ 't: s' म्हणजे Type: String (यामुळे सुरुवातीचा 0 कट होत नाही)
   const rows = this.filteredContacts().map(contact => [
-    contact.department_name || '-',
-    contact.designation || '-',
-    contact.address || '-',
-    contact.name || '',
-    contact.mobile_number || '',
-    contact.telephone_number || '-',
-    contact.email || '-',
-    contact.other_contact_1 || '-'
+    { v: contact.department_name || '-', t: 's' },
+    { v: contact.designation || '-', t: 's' },
+    { v: contact.address || '-', t: 's' },
+    { v: contact.name || '', t: 's' },
+    { v: contact.mobile_number || '', t: 's' }, // मोबाईलचा 0 सुरक्षित राहील
+    { v: contact.telephone_number || '-', t: 's' }, // टेलिफोनचा 0 सुरक्षित राहील
+    { v: contact.email || '-', t: 's' },
+    { v: contact.other_contact_1 || '-', t: 's' } // इतर संपर्काचा 0 सुरक्षित राहील
   ]);
 
-  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  // ३. वर्कशीट तयार करताना आधीच्या फॉरमॅटचा वापर करणे
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    headers.map(h => ({ v: h, t: 's' })), // हेडर्स देखील टेक्स्ट म्हणून
+    ...rows
+  ]);
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Contacts');
 
   if (type === 'excel') {
     XLSX.writeFile(workbook, 'contacts_directory.xlsx');
   } else {
+    // CSV साठी देखील स्ट्रिंग फॉरमॅट टिकवून ठेवण्यासाठी पर्याय
     XLSX.writeFile(workbook, 'contacts_directory.csv', { bookType: 'csv' });
   }
 }
