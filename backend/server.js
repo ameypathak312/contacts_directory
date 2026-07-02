@@ -21,6 +21,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
+// 🚫 ब्राउझर कॅशिंग पूर्णपणे बंद करण्यासाठी मिडलवेअर (server.js मध्ये जोडा)
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); // HTTP 1.1
+    res.setHeader('Pragma', 'no-cache'); // HTTP 1.0
+    res.setHeader('Expires', '0'); // Proxies साठी
+    next();
+});
 app.use(express.json());
 
 const upload = multer({ dest: 'uploads/' });
@@ -76,22 +84,27 @@ app.use(morgan('combined', {
     stream: { write: (message) => logger.info(message.trim()) }
 }));
 
-// Database Connection (.env मधील व्हेरिएबल्स वापरून)
-const db = mysql.createConnection({
+// ✅ नवीन सुरक्षित कोड (Auto-Reconnect Pool)
+const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
-    charset: 'utf8mb4'
+    charset: 'utf8mb4',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect(err => {
+// कनेक्शन तपासण्यासाठी छोटा टेस्ट
+db.getConnection((err, connection) => {
     if (err) {
-        console.error('Database connection failed: ' + err.stack);
+        console.error('Database Connection Pool Failed: ' + err.stack);
         return;
     }
-    console.log('Connected to SQL database.');
+    console.log('Connected to SQL Database via Pool.');
+    connection.release(); // कनेक्शन मोकळे करा
 });
 
 const authenticateJWT = (req, res, next) => {
